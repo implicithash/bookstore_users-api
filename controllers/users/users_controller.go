@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func getUserId(userIdParam string)(int64, *errors.RestErr) {
+func getUserId(userIdParam string) (int64, *errors.RestErr) {
 	userId, userErr := strconv.ParseInt(userIdParam, 10, 64)
 	if userErr != nil {
 		return 0, errors.BadRequestError("user id should be a number")
@@ -24,12 +24,12 @@ func Create(c *gin.Context) {
 		c.JSON(restErr.Status, restErr)
 		return
 	}
-	result, saveErr := services.CreateUser(user)
+	result, saveErr := services.UsersService.CreateUser(user)
 	if saveErr != nil {
 		c.JSON(saveErr.Status, saveErr)
 		return
 	}
-	c.JSON(http.StatusCreated, result)
+	c.JSON(http.StatusCreated, result.Marshall(c.GetHeader("X-Public") == "true"))
 }
 
 func Get(c *gin.Context) {
@@ -38,12 +38,12 @@ func Get(c *gin.Context) {
 		c.JSON(idErr.Status, idErr)
 		return
 	}
-	user, getErr := services.GetUser(userId)
+	user, getErr := services.UsersService.GetUser(userId)
 	if getErr != nil {
 		c.JSON(getErr.Status, getErr)
 		return
 	}
-	c.JSON(http.StatusCreated, user)
+	c.JSON(http.StatusCreated, user.Marshall(c.GetHeader("X-Public") == "true"))
 }
 
 func Update(c *gin.Context) {
@@ -61,12 +61,12 @@ func Update(c *gin.Context) {
 	user.Id = userId
 
 	isPartial := c.Request.Method == http.MethodPatch
-	result, err := services.UpdateUser(isPartial, user)
+	result, err := services.UsersService.UpdateUser(isPartial, user)
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, result.Marshall(c.GetHeader("X-Public") == "true"))
 }
 
 func Delete(c *gin.Context) {
@@ -75,7 +75,7 @@ func Delete(c *gin.Context) {
 		c.JSON(idErr.Status, idErr)
 		return
 	}
-	if err := services.DeleteUser(userId); err != nil {
+	if err := services.UsersService.DeleteUser(userId); err != nil {
 		c.JSON(err.Status, err)
 		return
 	}
@@ -83,6 +83,13 @@ func Delete(c *gin.Context) {
 	//c.String(http.StatusOK, "deleted")
 }
 
-/*func SearchUser(c *gin.Context) {
-	c.String(http.StatusNotImplemented, "implement me!")
-}*/
+func Search(c *gin.Context) {
+	status := c.Query("status")
+	users, err := services.UsersService.SearchUser(status)
+	if err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+	c.JSON(http.StatusOK, users.Marshall(c.GetHeader("X-Public") == "true"))
+	//c.String(http.StatusNotImplemented, "implement me!")
+}
