@@ -47,9 +47,9 @@ func (s *usersService) UpdateUser(isPartial bool, user users.User) (*users.User,
 	if err := current.Get(); err != nil {
 		return nil, err
 	}
-	if err := user.Validate(); err != nil {
+	/*if err := user.Validate(); err != nil {
 		return nil, err
-	}
+	}*/
 	if isPartial {
 		if user.FirstName != "" {
 			current.FirstName = user.FirstName
