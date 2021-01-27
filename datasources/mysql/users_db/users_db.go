@@ -30,10 +30,10 @@ func init() {
 	var err error
 	Client, err = sql.Open("mysql", dataSourceName)
 	if err != nil {
-		panic(err)
+		//panic(err)
 	}
 	if err = Client.Ping(); err != nil {
-		panic(err)
+		//panic(err)
 	}
 	log.Println("database successfully configured")
 }
